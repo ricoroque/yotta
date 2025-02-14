@@ -1,0 +1,10 @@
+[package]
+name = "yotta"
+version = "0.1.0"
+edition = "2021"
+readme = "README.md"
+description = "A no_std arbitrary-precision integer library"
+authors = ["Zander Lewis <zander@zanderlewis.dev>"]
+license = "PWL-1.0"
+repository = "https://github.com/zanderlewis/yotta"
+keywords = ["no_std", "arbitrary-precision", "bignum", "bigint"]
