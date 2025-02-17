@@ -1,7 +1,6 @@
 use crate::Yotta;
 use alloc::{string::String, vec};
 use core::fmt::{Debug, Display, Formatter, Result};
-use core::str::FromStr;
 
 impl Display for Yotta {
     fn fmt(&self, f: &mut Formatter) -> Result {
@@ -21,26 +20,15 @@ impl Display for Yotta {
 impl Debug for Yotta {
     fn fmt(&self, f: &mut Formatter) -> Result {
         let s: String = self.mantissa.iter().map(|&d| (d + b'0') as char).collect();
+        let f_s: String = if self.frac_part.is_empty() {
+            "0".into()
+        } else {
+            self.frac_part.iter().map(|&d| (d + b'0') as char).collect()
+        };
         write!(
             f,
-            "Yotta {{ mantissa: {}, exponent: {}, bit_width: {}, negative: {} }}",
-            s, self.exponent, self.bit_width, self.negative
+            "Yotta {{ mantissa: {}, frac_part: {}, exponent: {}, bit_width: {}, negative: {} }}",
+            s, f_s, self.exponent, self.bit_width, self.negative
         )
-    }
-}
-
-impl FromStr for Yotta {
-    type Err = core::fmt::Error;
-    fn from_str(s: &str) -> core::result::Result<Yotta, Self::Err> {
-        let negative = s.starts_with('-');
-        let s = if negative { &s[1..] } else { s };
-        let mut res = Yotta {
-            mantissa: vec![0; s.len()],
-            exponent: 0,
-            bit_width: (s.len() as u32) * 8,
-            negative,
-        };
-        res.mantissa[..s.len()].copy_from_slice(s.as_bytes());
-        core::result::Result::Ok(res)
     }
 }

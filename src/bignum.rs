@@ -1,10 +1,12 @@
 use crate::digits::*;
+use crate::errors::YottaError;
 use alloc::{string::String, vec::Vec, vec};
 
 #[repr(C)]
 #[derive(Clone)]
 pub struct Yotta {
     pub mantissa: Vec<u8>,
+    pub frac_part: Vec<u8>,
     pub exponent: i32,
     pub bit_width: u32,
     pub negative: bool,
@@ -21,14 +23,16 @@ impl Yotta {
 
         let mut exponent = 0;
         let mut clean = String::new();
+        let mut frac_part = Vec::new();
         if let Some(dot_index) = value.find('.') {
             // Remove the decimal point and record fractional length.
-            let (int_part, frac_part) = value.split_at(dot_index);
-            // frac_part starts with '.', so skip it.
-            let frac_part = &frac_part[1..];
-            exponent = -(frac_part.len() as i32);
+            let (int_part, frac_str) = value.split_at(dot_index);
+            // frac_str starts with '.', so skip it.
+            let frac_str = &frac_str[1..];
+            exponent = -(frac_str.len() as i32);
             clean.push_str(int_part);
-            clean.push_str(frac_part);
+            clean.push_str(frac_str);
+            frac_part = frac_str.chars().map(|c| c.to_digit(10).unwrap() as u8).collect::<Vec<u8>>();
         } else {
             clean.push_str(value);
         }
@@ -40,6 +44,7 @@ impl Yotta {
         let mantissa = bytes[..len].iter().map(|b| b - b'0').collect::<Vec<u8>>();
         Yotta {
             mantissa,
+            frac_part,
             exponent,
             bit_width,
             negative,
@@ -62,6 +67,7 @@ impl Yotta {
         let is_zero = digits.len() == 1 && digits[0] == 0;
         Yotta {
             mantissa: digits,
+            frac_part: vec![], // No fractional part.
             exponent,
             bit_width,
             negative: if is_zero { false } else { negative },
@@ -109,8 +115,12 @@ impl Yotta {
         Yotta::from_digits_with_width(prod, self.negative ^ other.negative, new_exponent, new_bw)
     }
 
-    pub fn div_impl(&self, other: &Yotta) -> Yotta {
-        // If either number has fractional digits, scale the numerator
+    pub fn div_impl(&self, other: &Yotta) -> Result<Yotta, YottaError> {
+        // Check if divisor is zero.
+        if other.mantissa.iter().all(|&d| d == 0) {
+            return Err(YottaError::DivisionByZero);
+        }
+        // If either number has fractional digits, scale the numerator.
         let scale = if self.exponent < 0 || other.exponent < 0 {
             // Use the absolute value of the smallest exponent as the scale factor.
             (-self.exponent.min(other.exponent)) as u32
@@ -120,6 +130,36 @@ impl Yotta {
         let scaled_numer = Self::scale_mantissa(&self.mantissa, scale);
         let quot = div_digits(&scaled_numer, &other.mantissa);
         let new_exponent = self.exponent - other.exponent - (scale as i32);
-        Yotta::from_digits_with_width(quot, self.negative ^ other.negative, new_exponent, self.bit_width)
+
+
+        if quot.is_empty() {
+            return Err(YottaError::DivisionByZero);
+        }
+        
+        Ok(Yotta::from_digits_with_width(quot, self.negative ^ other.negative, new_exponent, self.bit_width))
     }
+
+        pub fn sqrt(&self) -> Result<Yotta, YottaError> {
+            crate::functions::sqrt(self)
+        }
+
+        pub fn modulo(&self, other: &Yotta) -> Result<Yotta, YottaError> {
+            crate::functions::modulo_op(self, other)
+        }
+
+        pub fn gcd_with(&self, other: &Yotta) -> Yotta {
+            crate::functions::gcd(self, other)
+        }
+
+        pub fn lcm_with(&self, other: &Yotta) -> Result<Yotta, YottaError> {
+            crate::functions::lcm(self, other)
+        }
+
+        pub fn modpow(&self, exponent: &Yotta, modulo: &Yotta) -> Result<Yotta, YottaError> {
+            crate::functions::modpow(self, exponent, modulo)
+        }
+
+        pub fn modinv(&self, modulo: &Yotta) -> Result<Yotta, YottaError> {
+            crate::functions::modinv(self, modulo)
+        }
 }

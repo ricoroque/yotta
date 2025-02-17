@@ -21,6 +21,6 @@ impl MulAssign for Yotta {
 
 impl DivAssign for Yotta {
     fn div_assign(&mut self, other: Self) {
-        *self = self.div_impl(&other);
+        *self = self.div_impl(&other).unwrap();
     }
 }

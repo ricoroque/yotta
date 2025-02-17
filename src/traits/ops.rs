@@ -1,5 +1,5 @@
 use crate::Yotta;
-use core::ops::{Add, Div, Mul, Sub};
+use core::ops::{Add, Div, Mul, Sub, Neg};
 
 impl Add for Yotta {
     type Output = Self;
@@ -25,6 +25,16 @@ impl Mul for Yotta {
 impl Div for Yotta {
     type Output = Self;
     fn div(self, other: Self) -> Self {
-        self.div_impl(&other)
+        self.div_impl(&other).unwrap()
+    }
+}
+
+impl Neg for Yotta {
+    type Output = Self;
+    fn neg(self) -> Self {
+        Yotta {
+            negative: !self.negative,
+            ..self
+        }
     }
 }
