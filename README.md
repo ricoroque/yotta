@@ -6,6 +6,7 @@ Yotta is named after `Yottabyte`, the largest unit of digital information storag
 ## Features
 - [x] Dynamic precision arithmetic
 - [x] Traits for using operators
+- [x] Floating point arithmetic
 - [x] Easy to use
 - [x] `no_std`
 

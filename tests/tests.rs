@@ -155,6 +155,29 @@ mod tests {
     }
 
     #[test]
+    fn test_floats() {
+        let a = Yotta::new("1234567890.1234567890", 512);
+        let b = Yotta::new("9876543210.9876543210", 512);
+        let c = a + b;
+        assert_eq!(c, Yotta::new("11111111101.1111111100", 256));
+
+        let d = Yotta::new("1234567890.1234567890", 512);
+        let e = Yotta::new("9876543210.9876543210", 512);
+        let f = d - e;
+        assert_eq!(f, Yotta::new("-8641975320.8641975320", 256));
+
+        let g = Yotta::new("12.00000000000000000000000000000000000009", 512);
+        let h = Yotta::new("2", 512);
+        let i = g * h;
+        assert_eq!(i, Yotta::new("24.00000000000000000000000000000000000018", 512));
+
+        let j = Yotta::new("3.14", 512);
+        let k = Yotta::new("2.5", 512);
+        let l = j /k;
+        assert_eq!(l, Yotta::new("1.256", 512));
+    }
+
+    #[test]
     fn larger_than_u128() {
         let a = Yotta::new("1234567890123456789012345678900000", 512);
         let b = Yotta::new("9876543210987654321098765432100000", 512);
